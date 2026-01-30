@@ -7,6 +7,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import com.uallace.clinic.exception.DatabaseException;
+
 public abstract class ConnectionFactory {
   private static Properties props = new Properties();
   private static Connection connection;
@@ -33,7 +35,7 @@ public abstract class ConnectionFactory {
       connection = DriverManager.getConnection(url, user, password);
       return connection;
     } catch (SQLException e) {
-      throw new RuntimeException("Nao foi possivel conectar ao banco! >> " + e.getMessage());
+      throw new DatabaseException("Nao foi possivel conectar ao banco! >> " + e.getMessage());
     }
   }
 }
