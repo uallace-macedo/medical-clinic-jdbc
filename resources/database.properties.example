@@ -1,0 +1,3 @@
+db.url=jdbc:mysql://localhost:{PORT}/{DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false
+db.user={user}
+db.password={password}
