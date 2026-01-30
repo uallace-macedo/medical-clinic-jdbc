@@ -31,7 +31,6 @@ public abstract class ConnectionFactory {
       String user = props.getProperty("db.user");
       String password = props.getProperty("db.password");
     
-    
       connection = DriverManager.getConnection(url, user, password);
       return connection;
     } catch (SQLException e) {
