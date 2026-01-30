@@ -13,8 +13,6 @@ import com.uallace.clinic.exception.EntityException;
 import com.uallace.clinic.model.Specialty;
 
 public class SpecialtyDAO {
-  private static int queryLimit = 25;
-
   public void save(Specialty specialty) { 
     String sql = "INSERT INTO specialties (name) VALUES (?)";
     
@@ -74,16 +72,24 @@ public class SpecialtyDAO {
 
     return Optional.empty();
   }
-
+  
   public List<Specialty> findAll() {
-    String sql = "SELECT * FROM specialties LIMIT ?";
+    return findAll(0, 25);
+  }
+
+  public List<Specialty> findAll(int page, int size) {
+    String sql = "SELECT * FROM specialties LIMIT ? OFFSET ?";
     List<Specialty> specialties = new ArrayList<>();
+
+    int currentPage = Math.max(page, 1);
+    int offset = (currentPage - 1) * size;
 
     try (
       Connection conn = ConnectionFactory.getConnection();
       PreparedStatement stmt = conn.prepareStatement(sql);
     ) {
-      stmt.setInt(1, queryLimit);
+      stmt.setInt(1, size);
+      stmt.setInt(2, offset);
       ResultSet result = stmt.executeQuery();
 
       while (result.next()) {
@@ -124,6 +130,27 @@ public class SpecialtyDAO {
       return specialty;
     } catch (SQLException e) {
       throw new DatabaseException("Nao foi possivel atualizar a especialidade.", e);
+    }
+  }
+
+  public void delete(int id) {
+    Specialty specialty = findById(id)
+      .orElseThrow(() -> new DatabaseException("Especialidade nao encontrada."));
+
+    String sql = "DELETE specialties WHERE id = ?";
+
+    try (
+      Connection conn = ConnectionFactory.getConnection();
+      PreparedStatement stmt = conn.prepareStatement(sql);
+    ) {
+      stmt.setInt(1, specialty.getId());
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      if (e.getErrorCode() == 1451) {
+        throw new EntityException("Nao eh possivel excluir: existem medicos vinculados a essa especialidade.");
+      }
+
+      throw new DatabaseException("Nao foi possivel excluir a especialidade.", e);
     }
   }
 }
