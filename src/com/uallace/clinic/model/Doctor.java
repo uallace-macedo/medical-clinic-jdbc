@@ -46,4 +46,8 @@ public class Doctor {
     this.specialty = specialty;
   }
 
+  @Override
+  public String toString() {
+    return String.format("%d - %s [%s]: %s", id, name, crm, specialty.getName());
+  }
 }

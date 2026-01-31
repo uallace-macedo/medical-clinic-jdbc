@@ -25,4 +25,9 @@ public class Specialty {
   public void setName(String name) {
     this.name = name;
   }
+
+  @Override
+  public String toString() {
+    return String.format("%d - %s", id, name);
+  }
 }

@@ -78,7 +78,7 @@ public class SpecialtyDAO {
   }
 
   public List<Specialty> findAll(int page, int size) {
-    String sql = "SELECT * FROM specialties LIMIT ? OFFSET ?";
+    String sql = "SELECT * FROM specialties ORDER BY id LIMIT ? OFFSET ?";
     List<Specialty> specialties = new ArrayList<>();
 
     int currentPage = Math.max(page, 1);
