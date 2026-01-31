@@ -12,7 +12,8 @@ import com.uallace.clinic.exception.DatabaseException;
 import com.uallace.clinic.exception.EntityException;
 import com.uallace.clinic.model.Specialty;
 
-public class SpecialtyDAO {
+public class SpecialtyDAO extends BaseDAO<Specialty> {
+  @Override
   public void save(Specialty specialty) { 
     String sql = "INSERT INTO specialties (name) VALUES (?)";
     
@@ -27,6 +28,7 @@ public class SpecialtyDAO {
     }
   }
 
+  @Override
   public Optional<Specialty> findById(int id) {
     String sql = "SELECT * FROM specialties WHERE id = ?";
 
@@ -49,34 +51,12 @@ public class SpecialtyDAO {
 
     return Optional.empty();
   }
-
-  public Optional<Specialty> findByName(String name) {
-    String sql = "SELECT * FROM specialties WHERE name = ?";
-
-    try (
-      Connection conn = ConnectionFactory.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
-    ) {
-      stmt.setString(1, name);
-      try (ResultSet result = stmt.executeQuery()) {
-        if (result.next()) {
-          int specialty_id = result.getInt("id");
-          String specialty_name = result.getString("name");
-
-          return Optional.of(new Specialty(specialty_id, specialty_name));
-        }
-      }
-    } catch (SQLException e) {
-      throw new DatabaseException("Nao foi possivel buscar especialidade.", e);
-    }
-
-    return Optional.empty();
-  }
   
   public List<Specialty> findAll() {
-    return findAll(0, 25);
+    return findAll(0, queryLimit);
   }
 
+  @Override
   public List<Specialty> findAll(int page, int size) {
     String sql = "SELECT * FROM specialties ORDER BY id LIMIT ? OFFSET ?";
     List<Specialty> specialties = new ArrayList<>();
@@ -90,61 +70,59 @@ public class SpecialtyDAO {
     ) {
       stmt.setInt(1, size);
       stmt.setInt(2, offset);
-      ResultSet result = stmt.executeQuery();
 
-      while (result.next()) {
-        int id = result.getInt("id");
-        String name = result.getString("name");
-        specialties.add(new Specialty(id, name));
+      try(ResultSet result = stmt.executeQuery();) {
+        while (result.next()) {
+          int id = result.getInt("id");
+          String name = result.getString("name");
+          specialties.add(new Specialty(id, name));
+        }
       }
-
-      return specialties;
     } catch (SQLException e) {
       throw new DatabaseException("Erro ao buscar especialidades", e);
     }
+
+    return specialties;
   }
 
-  public Specialty update(int id, String newName) {
-    Specialty specialty = findById(id)
-      .orElseThrow(() -> new DatabaseException("Especialidade nao encontrada."));
-
-    if (specialty.getName().equals(newName)) {
-      return specialty;
-    }
-
-    findByName(newName).ifPresent(s -> {
-      throw new EntityException("Esse nome ja esta em uso!");
-    });
-
+  @Override
+  public void update(Specialty specialty) {
     String sql = "UPDATE specialties SET name = ? WHERE id = ?";
-    specialty.setName(newName);
 
     try (
       Connection conn = ConnectionFactory.getConnection();
       PreparedStatement stmt = conn.prepareStatement(sql);
     ) {
-      stmt.setString(1, specialty.getName());
+      stmt.setString(1, specialty.getName().trim().toUpperCase());
       stmt.setInt(2, specialty.getId());
-      stmt.executeUpdate();
 
-      return specialty;
+      int rowsAffected = stmt.executeUpdate();
+      if (rowsAffected == 0) {
+        throw new DatabaseException("Especialidade nao encontrada.");
+      }
     } catch (SQLException e) {
+      if (e.getErrorCode() == 1069) {
+        throw new EntityException("Esse nome ja esta sendo utilizado!");
+      }
+
       throw new DatabaseException("Nao foi possivel atualizar a especialidade.", e);
     }
   }
 
+  @Override
   public void delete(int id) {
-    Specialty specialty = findById(id)
-      .orElseThrow(() -> new DatabaseException("Especialidade nao encontrada."));
-
-    String sql = "DELETE specialties WHERE id = ?";
+    String sql = "DELETE FROM specialties WHERE id = ?";
 
     try (
       Connection conn = ConnectionFactory.getConnection();
       PreparedStatement stmt = conn.prepareStatement(sql);
     ) {
-      stmt.setInt(1, specialty.getId());
-      stmt.executeUpdate();
+      stmt.setInt(1, id);
+
+      int rowsAffected = stmt.executeUpdate();
+      if (rowsAffected == 0) {
+        throw new DatabaseException("Especialidade nao encontrada.");
+      }
     } catch (SQLException e) {
       if (e.getErrorCode() == 1451) {
         throw new EntityException("Nao eh possivel excluir: existem medicos vinculados a essa especialidade.");
