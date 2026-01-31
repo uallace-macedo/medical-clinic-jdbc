@@ -13,7 +13,8 @@ import com.uallace.clinic.exception.EntityException;
 import com.uallace.clinic.model.Doctor;
 import com.uallace.clinic.model.Specialty;
 
-public class DoctorDAO {
+public class DoctorDAO extends BaseDAO<Doctor> {
+  @Override
   public void save(Doctor doctor) {
     if (doctor.getSpecialty() == null || doctor.getSpecialty().getId() == 0) {
       throw new EntityException("O medico precisa de uma especialidade valida.");
@@ -37,6 +38,7 @@ public class DoctorDAO {
     }
   }
 
+  @Override
   public Optional<Doctor> findById(int id) {
     String sql = """
       SELECT d.*, s.name AS specialty_name
@@ -59,7 +61,7 @@ public class DoctorDAO {
           );
   
           Doctor doctor = new Doctor(
-            result.getInt("id"),
+            id,
             result.getString("name"),
             result.getString("crm"),
             specialty
@@ -75,6 +77,7 @@ public class DoctorDAO {
     return Optional.empty();
   }
 
+  @Override
   public void update(Doctor doctor) {
     String sql = "UPDATE doctors SET name = ?, crm = ?, specialty_id = ? WHERE id = ?";
     
@@ -100,6 +103,7 @@ public class DoctorDAO {
     }
   }
 
+  @Override
   public void delete(int id) {
     String sql = "DELETE FROM doctors WHERE id = ?";
     try (
@@ -118,9 +122,10 @@ public class DoctorDAO {
   }
 
   public List<Doctor> findAll() {
-    return findAll(0, 25);
+    return findAll(0, queryLimit);
   }
 
+  @Override
   public List<Doctor> findAll(int page, int size) {
     List<Doctor> doctors = new ArrayList<>();
     int currentPage = (Math.max(page, 1) - 1) * size;
