@@ -12,9 +12,8 @@ import com.uallace.clinic.exception.DatabaseException;
 import com.uallace.clinic.exception.EntityException;
 import com.uallace.clinic.model.Patient;
 
-public class PatientDAO {
-  private int queryLimit = 25;
-
+public class PatientDAO extends BaseDAO<Patient> {
+  @Override
   public void save(Patient patient) {
     String sql = "INSERT INTO patients (name,cpf,telephone) VALUES (?,?,?)";
 
@@ -36,6 +35,7 @@ public class PatientDAO {
     }
   }
 
+  @Override
   public Optional<Patient> findById(int id) {
     String sql = "SELECT * FROM patients WHERE id = ?";
     try (
@@ -62,6 +62,7 @@ public class PatientDAO {
     return Optional.empty();
   }
 
+  @Override
   public void update(Patient patient) {
     String sql = "UPDATE patients SET name = ?, cpf = ?, telephone = ? WHERE id = ?";
 
@@ -88,6 +89,7 @@ public class PatientDAO {
     }
   }
 
+  @Override
   public void delete (int id) {
     String sql = "DELETE FROM patients WHERE id = ?";
      try (
@@ -109,6 +111,7 @@ public class PatientDAO {
     return findAll(0, queryLimit);
   }
 
+  @Override
   public List<Patient> findAll(int page, int size) {
     List<Patient> patients = new ArrayList<>();
     
