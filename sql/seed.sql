@@ -1,0 +1,33 @@
+INSERT INTO specialties (name) VALUES 
+('CARDIOLOGIA'), ('PEDIATRIA'), ('DERMATOLOGIA'), ('PSIQUIATRIA'), 
+('ORTOPEDIA'), ('GINECOLOGIA'), ('NEUROLOGIA'), ('OFTALMOLOGIA'), 
+('ONCOLOGIA'), ('UROLOGIA'), ('ENDOCRINOLOGIA'), ('GASTROENTEROLOGIA'), 
+('OTORRINOLARINGOLOGIA'), ('ANESTESIOLOGIA'), ('GERIATRIA'), ('INFECTOLOGIA'), 
+('NEFROLOGIA'), ('PNEUMOLOGIA'), ('REUMATOLOGIA'), ('DERMATOLOGIA ESTÉTICA');
+
+INSERT INTO doctors (name, crm, specialty_id) VALUES 
+('Gregory House', '11111-NJ', 1), ('Stephen Strange', '22222-NY', 7),
+('Meredith Grey', '33333-WA', 5), ('Shaun Murphy', '44444-CA', 5),
+('Derek Shepherd', '55555-WA', 7), ('Cristina Yang', '66666-WA', 1),
+('John Watson', '77777-UK', 15), ('Dana Scully', '88888-MD', 16),
+('Leonard McCoy', '99999-ENT', 2), ('Julius Hibbert', '10101-SP', 2),
+('Nick Riviera', '12121-SP', 5), ('Allison Cameron', '13131-NJ', 16),
+('Robert Chase', '14141-NJ', 1), ('Eric Foreman', '15151-NJ', 7),
+('Remy Hadley', '16161-NJ', 11), ('James Wilson', '17171-NJ', 9),
+('Doogie Howser', '18181-LA', 2), ('Miranda Bailey', '19191-WA', 5),
+('Richard Webber', '20202-WA', 5), ('Perry Cox', '21212-CA', 11),
+('John Dorian', '22322-CA', 2), ('Christopher Turk', '23323-CA', 5),
+('Elliot Reid', '24424-CA', 11), ('Carla Espinosa', '25525-CA', 2),
+('Ben Sullivan', '26626-NY', 9), ('Jordan Sullivan', '27727-NY', 4),
+('Ted Buckland', '28828-CA', 18), ('Bob Kelso', '29929-CA', 15),
+('Todd Quinlan', '30303-CA', 5), ('Laverne Roberts', '31313-CA', 2),
+('Doug Murphy', '32323-CA', 17), ('Denzel Washington', '33433-LA', 1),
+('Will Halstead', '34434-IL', 12), ('Natalie Manning', '35535-IL', 2),
+('Connor Rhodes', '36636-IL', 1), ('Ethan Choi', '37737-IL', 16),
+('April Sexton', '38838-IL', 2), ('Sharon Goodwin', '39939-IL', 15),
+('Daniel Charles', '40404-IL', 4), ('Maggie Lockwood', '41414-IL', 16),
+('Jack Shephard', '42424-HI', 7), ('Juliet Burke', '43434-HI', 6),
+('Christian Shephard', '44544-HI', 1), ('Aristhidhes Smith', '45545-MG', 10),
+('Helena Ravenclaw', '46646-UK', 8), ('Salazar Slytherin', '47747-UK', 16),
+('Godric Gryffindor', '48848-UK', 5), ('Rowena Ravenclaw', '49949-UK', 11),
+('Newt Scamander', '50505-UK', 19), ('Albus Dumbledore', '51515-UK', 7);
