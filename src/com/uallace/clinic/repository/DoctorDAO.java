@@ -16,10 +16,6 @@ import com.uallace.clinic.model.Specialty;
 public class DoctorDAO extends BaseDAO<Doctor> {
   @Override
   public void save(Doctor doctor) {
-    if (doctor.getSpecialty() == null || doctor.getSpecialty().getId() == 0) {
-      throw new EntityException("O medico precisa de uma especialidade valida.");
-    }
-
     String sql = "INSERT INTO doctors (name,crm,specialty_id) VALUES (?,?,?)";
 
     try (
@@ -32,8 +28,13 @@ public class DoctorDAO extends BaseDAO<Doctor> {
       stmt.executeUpdate();
     } catch (SQLException e) {
       if (e.getErrorCode() == 1062) {
-        throw new EntityException("Esse CRM ja esta cadastrado.");
+        throw new DatabaseException("Esse CRM ja esta cadastrado.");
       }
+
+      if (e.getErrorCode() == 1452) {
+        throw new DatabaseException("Especialidade nao encontrada.");
+      }
+
       throw new DatabaseException("Ocorreu um erro ao salvar o doutor.", e);
     }
   }
@@ -128,7 +129,9 @@ public class DoctorDAO extends BaseDAO<Doctor> {
   @Override
   public List<Doctor> findAll(int page, int size) {
     List<Doctor> doctors = new ArrayList<>();
-    int currentPage = (Math.max(page, 1) - 1) * size;
+
+    int currentPage = Math.max(page, 1) - 1;
+    int offset = (currentPage) * (size - 1);
 
     String sql = """
       SELECT d.*, s.name AS specialty_name
@@ -144,7 +147,7 @@ public class DoctorDAO extends BaseDAO<Doctor> {
       PreparedStatement stmt = conn.prepareStatement(sql)
     ) {
       stmt.setInt(1, size);
-      stmt.setInt(2, currentPage);
+      stmt.setInt(2, offset);
 
       try (ResultSet result = stmt.executeQuery()) {
         while(result.next()) {
