@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.uallace.clinic.exception.DatabaseException;
-import com.uallace.clinic.exception.EntityException;
 import com.uallace.clinic.model.Specialty;
 
 public class SpecialtyDAO extends BaseDAO<Specialty> {
@@ -24,6 +23,9 @@ public class SpecialtyDAO extends BaseDAO<Specialty> {
       stmt.setString(1, specialty.getName().trim().toUpperCase());
       stmt.executeUpdate();
     } catch (SQLException e) {
+      if (e.getErrorCode() == 1062) {
+        throw new DatabaseException("Ja ha uma especialidade com esse nome.", e);
+      }
       throw new DatabaseException("Nao foi possivel salvar especialidade.", e);
     }
   }
@@ -62,7 +64,7 @@ public class SpecialtyDAO extends BaseDAO<Specialty> {
     List<Specialty> specialties = new ArrayList<>();
 
     int currentPage = Math.max(page, 1);
-    int offset = (currentPage - 1) * size;
+    int offset = Math.max((currentPage - 1) * (size - 1), 0);
 
     try (
       Connection conn = ConnectionFactory.getConnection();
@@ -102,7 +104,7 @@ public class SpecialtyDAO extends BaseDAO<Specialty> {
       }
     } catch (SQLException e) {
       if (e.getErrorCode() == 1062) {
-        throw new EntityException("Esse nome ja esta sendo utilizado!");
+        throw new DatabaseException("Esse nome ja esta sendo utilizado!");
       }
 
       throw new DatabaseException("Nao foi possivel atualizar a especialidade.", e);
@@ -125,7 +127,7 @@ public class SpecialtyDAO extends BaseDAO<Specialty> {
       }
     } catch (SQLException e) {
       if (e.getErrorCode() == 1451) {
-        throw new EntityException("Nao eh possivel excluir: existem medicos vinculados a essa especialidade.");
+        throw new DatabaseException("Nao foi possivel excluir: existem medicos vinculados a essa especialidade.");
       }
 
       throw new DatabaseException("Nao foi possivel excluir a especialidade.", e);
