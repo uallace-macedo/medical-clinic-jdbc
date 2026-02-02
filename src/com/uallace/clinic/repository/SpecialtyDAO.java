@@ -101,7 +101,7 @@ public class SpecialtyDAO extends BaseDAO<Specialty> {
         throw new DatabaseException("Especialidade nao encontrada.");
       }
     } catch (SQLException e) {
-      if (e.getErrorCode() == 1069) {
+      if (e.getErrorCode() == 1062) {
         throw new EntityException("Esse nome ja esta sendo utilizado!");
       }
 
