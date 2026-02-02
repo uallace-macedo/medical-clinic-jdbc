@@ -11,7 +11,7 @@ public abstract class BaseUI {
     this.scan = scan;
   }
 
-  protected abstract void start();
+  public abstract void start();
   protected abstract void showMenu();
 
   protected int readInt(String msg) {
