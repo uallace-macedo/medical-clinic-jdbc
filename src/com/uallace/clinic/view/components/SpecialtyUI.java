@@ -10,9 +10,9 @@ import com.uallace.clinic.util.Page;
 import com.uallace.clinic.view.BaseUI;
 
 public class SpecialtyUI extends BaseUI {
-  private String TABLE_HEADER_FORMAT = "| %5s | %-21s |%n";
-  private String TABLE_DATA_FORMAT = "| %5s | %-21s |%n";
-  SpecialtyService service = new SpecialtyService();
+  private final String TABLE_HEADER_FORMAT = "| %5s | %-21s |%n";
+  private final String TABLE_DATA_FORMAT = "| %5s | %-21s |%n";
+  private final SpecialtyService service = new SpecialtyService();
 
   public SpecialtyUI(Scanner scan) {
     super(scan);
