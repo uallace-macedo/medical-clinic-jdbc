@@ -27,6 +27,10 @@ public class Page<T> {
     return size;
   }
 
+  public boolean hasPrevious() {
+    return page > 1;
+  }
+
   public boolean hasNext() {
     return hasNext;
   }
