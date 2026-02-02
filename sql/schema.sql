@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS appointments (
   appointment_date DATETIME NOT NULL,
 
   PRIMARY KEY (id),
+  CONSTRAINT uk_doctor_schedule UNIQUE (doctor_id, appointment_date),
+  CONSTRAINT uk_patient_schedule UNIQUE (patient_id, appointment_date),
   CONSTRAINT fk_appointment_doctor FOREIGN KEY (doctor_id) REFERENCES doctors (id),
   CONSTRAINT fk_appointment_patient FOREIGN KEY (patient_id) REFERENCES patients (id)
 );
