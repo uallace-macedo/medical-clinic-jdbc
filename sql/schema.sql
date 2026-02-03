@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   doctor_id INT NOT NULL,
   patient_id INT NOT NULL,
   appointment_date DATETIME NOT NULL,
+  status ENUM ('SCHEDULED', 'CANCELED', 'FINISHED') DEFAULT 'SCHEDULED',
 
   PRIMARY KEY (id),
   CONSTRAINT uk_doctor_schedule UNIQUE (doctor_id, appointment_date),
