@@ -63,6 +63,41 @@ public class PatientDAO extends BaseDAO<Patient> {
   }
 
   @Override
+  public List<Patient> findAll(int page, int size) {
+    List<Patient> patients = new ArrayList<>();
+    
+    int currentPage = Math.max(page, 1) - 1;
+    int offset = currentPage * (size - 1);
+
+    String sql = "SELECT * FROM patients ORDER BY id LIMIT ? OFFSET ?";
+    try (
+      Connection conn = ConnectionFactory.getConnection();
+      PreparedStatement stmt = conn.prepareStatement(sql);
+    ) {
+      stmt.setInt(1, size);
+      stmt.setInt(2, offset);
+      
+      try(ResultSet result = stmt.executeQuery()) {
+        while (result.next()) {
+          Patient patient = new Patient(
+            result.getInt("id"),
+            result.getString("name"),
+            result.getString("cpf"),
+            result.getString("telephone")
+          );
+
+          patients.add(patient);
+        }
+      }
+
+    } catch (SQLException e) {
+      throw new DatabaseException("Nao foi possivel buscar os pacientes.", e);
+    }
+
+    return patients;
+  }
+
+  @Override
   public void update(Patient patient) {
     String sql = "UPDATE patients SET name = ?, cpf = ?, telephone = ? WHERE id = ?";
 
@@ -105,44 +140,5 @@ public class PatientDAO extends BaseDAO<Patient> {
     } catch (SQLException e) {
       throw new DatabaseException("Nao foi possivel excluir o paciente.", e);
     }
-  }
-
-  public List<Patient> findAll() {
-    return findAll(0, queryLimit);
-  }
-
-  @Override
-  public List<Patient> findAll(int page, int size) {
-    List<Patient> patients = new ArrayList<>();
-    
-    int currentPage = Math.max(page, 1) - 1;
-    int offset = currentPage * size;
-
-    String sql = "SELECT * FROM patients ORDER BY id LIMIT ? OFFSET ?";
-    try (
-      Connection conn = ConnectionFactory.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
-    ) {
-      stmt.setInt(1, size);
-      stmt.setInt(2, offset);
-      
-      try(ResultSet result = stmt.executeQuery()) {
-        while (result.next()) {
-          Patient patient = new Patient(
-            result.getInt("id"),
-            result.getString("name"),
-            result.getString("cpf"),
-            result.getString("telephone")
-          );
-
-          patients.add(patient);
-        }
-      }
-
-    } catch (SQLException e) {
-      throw new DatabaseException("Nao foi possivel buscar os pacientes.", e);
-    }
-
-    return patients;
   }
 }
