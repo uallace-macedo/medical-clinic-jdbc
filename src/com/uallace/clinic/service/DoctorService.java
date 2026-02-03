@@ -16,12 +16,8 @@ public class DoctorService {
       throw new BusinessException("O nome nao pode ser vazio e deve conter no minimo 3 caracteres.");
     }
 
-    if (doctor.getCrm().isBlank() || doctor.getCrm().length() > 11) {
-      throw new BusinessException("O crm nao pode ser vazio e deve conter no maximo 11 caracteres.");
-    }
-
-    if (doctor.getSpecialty() == null || doctor.getSpecialty().getId() <= 0) {
-      throw new EntityException("Nao e possivel criar um medico sem especialidade.");
+    if (doctor.getCrm().isBlank() || doctor.getCrm().length() != 11) {
+      throw new BusinessException("O crm nao pode ser vazio e deve conter 11 caracteres.");
     }
 
     doctorDAO.save(doctor);
