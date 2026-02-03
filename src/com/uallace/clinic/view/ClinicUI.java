@@ -3,6 +3,7 @@ package com.uallace.clinic.view;
 import java.util.Scanner;
 
 import com.uallace.clinic.view.components.DoctorUI;
+import com.uallace.clinic.view.components.PatientUI;
 import com.uallace.clinic.view.components.SpecialtyUI;
 
 public class ClinicUI extends BaseUI {
@@ -14,6 +15,7 @@ public class ClinicUI extends BaseUI {
   public void start() {
     SpecialtyUI specialtyUI = new SpecialtyUI(scan);
     DoctorUI doctorUI = new DoctorUI(scan);
+    PatientUI patientUI = new PatientUI(scan);
     
     boolean running = true;
     while(running) {
@@ -26,7 +28,7 @@ public class ClinicUI extends BaseUI {
         switch (option) {
           case 1 -> specialtyUI.start();
           case 2 -> doctorUI.start();
-          // case 3 -> patientUI.start();
+          case 3 -> patientUI.start();
           // case 4 -> appointmentUI.start();
           case 5 -> running = false;
           default -> System.out.println("Opcao invalida");
