@@ -1,7 +1,10 @@
 package com.uallace.clinic.view;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
+import com.uallace.clinic.exception.BusinessException;
 import com.uallace.clinic.exception.InputException;
 
 public abstract class BaseUI {
@@ -32,5 +35,15 @@ public abstract class BaseUI {
   protected String readString(String msg) {
     System.out.print(msg);
     return scan.nextLine().trim();
+  }
+
+  protected LocalDateTime readDateTime(String msg) {
+    String input = readString(msg + " (dd/MM/yyyy HH:mm): ");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    try {
+      return LocalDateTime.parse(input, formatter);
+    } catch (Exception e) {
+      throw new BusinessException("Data e hora invalidos.");
+    }
   }
 }
