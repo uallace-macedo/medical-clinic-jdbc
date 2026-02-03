@@ -12,15 +12,32 @@ import java.util.Optional;
 import com.uallace.clinic.exception.DatabaseException;
 import com.uallace.clinic.exception.EntityException;
 import com.uallace.clinic.model.Appointment;
+import com.uallace.clinic.model.AppointmentStatus;
 import com.uallace.clinic.model.Doctor;
 import com.uallace.clinic.model.Patient;
 import com.uallace.clinic.model.Specialty;
 
 public class AppointmentDAO extends BaseDAO<Appointment> {
+  private final String BASE_SQL = """
+    SELECT 
+      a.id AS appointment_id,
+      a.appointment_date,
+      s.name AS specialty_name,
+      d.id AS doctor_id,
+      d.name AS doctor_name,
+      p.id AS patient_id,
+      p.name AS patient_name,
+      a.status
+    FROM appointments a
+    INNER JOIN doctors d ON d.id=a.doctor_id
+    INNER JOIN specialties s ON s.id=d.specialty_id
+    INNER JOIN patients p ON p.id=a.patient_id
+    ORDER BY a.appointment_date
+  """;
 
   @Override
   public void save(Appointment appointment) {
-    String sql = "INSERT INTO appointments (doctor_id,patient_id,appointment_date) VALUES (?,?,?)";
+    String sql = "INSERT INTO appointments (doctor_id,patient_id,appointment_date,status) VALUES (?,?,?,?)";
     try (
       Connection conn = getConnection();
       PreparedStatement stmt = conn.prepareStatement(sql);
@@ -28,6 +45,7 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
       stmt.setInt(1, appointment.getDoctor().getId());
       stmt.setInt(2, appointment.getPatient().getId());
       stmt.setObject(3, appointment.getAppointmentDate());
+      stmt.setString(4, appointment.getAppointmentStatus().name());
       stmt.executeUpdate();
     } catch (SQLException e) {
       if (e.getErrorCode() == 1062) {
@@ -45,21 +63,7 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
 
   @Override
   public Optional<Appointment> findById(int id) {
-    String sql = """
-      SELECT 
-        a.id AS appointment_id,
-        a.appointment_date,
-        s.name AS specialty_name,
-        d.id AS doctor_id,
-        d.name AS doctor_name,
-        p.id AS patient_id,
-        p.name AS patient_name
-      FROM appointments a
-      INNER JOIN doctors d ON d.id=a.doctor_id
-      INNER JOIN specialties s ON s.id=d.specialty_id
-      INNER JOIN patients p ON p.id=a.patient_id
-      WHERE a.id = ?
-    """;
+    String sql = BASE_SQL + " WHERE a.id = ?";
 
     try (
       Connection conn = getConnection();
@@ -78,32 +82,13 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
     return Optional.empty();
   }
 
-  public List<Appointment> findAll() {
-    return findAll(0, queryLimit);
-  }
-
   @Override
   public List<Appointment> findAll(int page, int size) {
-    String sql = """
-      SELECT 
-	      a.id AS appointment_id,
-	      a.appointment_date,
-	      s.name AS specialty_name,
-	      d.id AS doctor_id,
-	      d.name AS doctor_name,
-	      p.id AS patient_id,
-	      p.name AS patient_name
-      FROM appointments a
-      INNER JOIN doctors d ON d.id=a.doctor_id
-      INNER JOIN specialties s ON s.id=d.specialty_id
-      INNER JOIN patients p ON p.id=a.patient_id
-      ORDER BY a.appointment_date
-      LIMIT ? OFFSET ?
-    """;
+    String sql = BASE_SQL + " ORDER BY a.appointment_date LIMIT ? OFFSET ?";
 
     List<Appointment> appointments = new ArrayList<>();
     int currentPage = Math.max(page, 1) - 1;
-    int offset = currentPage * size;
+    int offset = currentPage * (size - 1);
 
     try (
       Connection conn = getConnection();
@@ -126,7 +111,7 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
 
   @Override
   public void update(Appointment entity) {
-    String sql = "UPDATE appointments SET doctor_id = ?, patient_id = ?, appointment_date = ? WHERE id = ?";
+    String sql = "UPDATE appointments SET doctor_id = ?, patient_id = ?, appointment_date = ?, status = ? WHERE id = ?";
 
     try (
       Connection conn = getConnection();
@@ -135,7 +120,8 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
       stmt.setInt(1, entity.getDoctor().getId());
       stmt.setInt(2, entity.getPatient().getId());
       stmt.setObject(3, entity.getAppointmentDate());
-      stmt.setInt(4, entity.getId());
+      stmt.setString(4, entity.getAppointmentStatus().name());
+      stmt.setInt(5, entity.getId());
 
       int rowsAffected = stmt.executeUpdate();
       if (rowsAffected == 0) {
@@ -174,6 +160,28 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
     }
   }
 
+  public List<Appointment> getOpenedDoctorAppointments(int id) {
+    String sql = BASE_SQL + " WHERE d.id = ? AND a.status = 'SCHEDULED' ORDER BY a.appointment_date";
+    List<Appointment> appointments = new ArrayList<>();
+
+    try (
+      Connection conn = getConnection();
+      PreparedStatement stmt = conn.prepareStatement(sql);
+    ) {
+      stmt.setInt(1, id);
+
+      try (ResultSet result = stmt.executeQuery()) {
+        while (result.next()) {
+          appointments.add(mapResultSetToAppointment(result));
+        }
+      }
+    } catch (SQLException e) {
+      throw new DatabaseException("Erro ao buscar agendamentos abertos do doutor.", e);
+    }
+
+    return appointments;
+  }
+
   // --- UTILS
 
   private Appointment mapResultSetToAppointment(ResultSet result) throws SQLException {
@@ -189,11 +197,15 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
     patient.setId(result.getInt("patient_id"));
     patient.setName(result.getString("patient_name"));
 
+    String dbStatus = result.getString("status");
+    AppointmentStatus status = AppointmentStatus.valueOf(dbStatus);
+
     return new Appointment(
       result.getInt("appointment_id"),
       doctor,
       patient,
-      result.getObject("appointment_date", LocalDateTime.class)
+      result.getObject("appointment_date", LocalDateTime.class),
+      status
     );
   }
 }
