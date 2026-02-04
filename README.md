@@ -1,44 +1,85 @@
 <div align="center">
   <h1>Medical Clinic (JDBC) 🩺</h1>
-  <p>Gestão de clínica médica com persistência em banco de dados relacional e arquitetura em camadas.</p>
+  <p>Gestão de clínica médica com persistência em banco de dados relacional, arquitetura em camadas e validações de negócio complexas.</p>
 </div>
+
+---
+
+## 📌 Sumário
+- [🛠️ Implementação Técnica](#️-implementação-técnica)
+- [🧠 Diferenciais do Projeto](#-diferenciais-do-projeto)
+- [📸 Visual do Sistema](#-visual-do-sistema)
+- [🚀 Como Executar](#-como-executar)
+
+---
 
 ## 🛠️ Implementação Técnica
 
 ### 🏗️ Arquitetura e Padrões
-- `DAO Pattern`: Encapsulamento da lógica de acesso a dados, isolando o SQL das regras de negócio.
-- `Connection Factory`: Centralização da gestão de conexões com o banco de dados (PostgreSQL/MySQL).
-- `Separação em Camadas`: Divisão clara entre Interface (View), Lógica (Service) e Persistência (Repository).
+- `DAO Pattern`: Encapsulamento da persistência e isolamento de queries.
+- `Connection Factory`: Singleton para gestão centralizada de conexões JDBC.
+- `Separação em Camadas`: Arquitetura limpa dividida em View (CLI), Service (Regras) e Repository (DAO).
 
-### 🗄️ Persistência de Dados (JDBC)
-- `PreparedStatement`: Uso obrigatório para execução de queries, garantindo proteção contra SQL Injection.
-- `Gestão de Recursos`: Implementação de try-with-resources para fechamento automático de conexões e statements.
-- `Relacionamentos SQL`: Modelagem e manipulação de relações entre entidades (Médicos, Pacientes e Consultas).
+### 🗄️ Persistência (JDBC)
+- `PreparedStatement`: Proteção nativa contra SQL Injection.
+- `Try-with-resources`: Gestão eficiente de recursos e fechamento automático de conexões.
+- `Time API`: Uso intensivo de `LocalDateTime` para manipulação de datas e horas.
 
-### 🛡️ Experiência do Usuário (CLI)
-- `Entradas Seguras`: Tratamento de buffer e validação de tipos para impedir falhas de leitura e saltos de menu.
-- `Tratamento de Exceções`: Captura de SQLException e conversão para exceções de negócio personalizadas.
-- `Feedback Visual`: Interface via terminal com menus numerados e mensagens de status claras.
+---
 
-### 🏗️ Estrutura do Projeto
-- `model`: Representação das entidades (POJOs) mapeadas para as tabelas do banco.
-- `repository`: Camada de acesso ao banco de dados (DAOs).
-- `service`: Camada de regras de negócio e validações.
-- `view`: Interface CLI para interação e entrada de dados.
-- `exception`: Hierarquia de erros customizada para o domínio da aplicação.
-- `Main`: Ponto de entrada do sistema.
+## 🧠 Diferenciais do Projeto
+
+### 🛡️ Validações de Negócio (Business Rules)
+Diferente de um CRUD comum, este sistema implementa regras críticas na camada `Service`:
+- **Intervalo de Segurança**: Garante um intervalo mínimo de **15 minutos** entre consultas do mesmo médico utilizando a `Java Time API (Duration)`.
+- **Prevenção de Retroatividade**: Impede agendamentos em datas passadas.
+- **Conflito de Agenda**: Travas de segurança via banco (`Unique Constraints`) e lógica de aplicação para evitar que médico ou paciente tenham conflitos de horário.
+
+### 🗄️ Tratamento Avançado de Persistência
+- **Mapeamento de Erros SQL**: Conversão de códigos de erro nativos (ex: `1062` para duplicidade e `1452` para chaves estrangeiras) em exceções de negócio legíveis via análise de mensagens (`String.contains`).
+- **Arquitetura DAO**: Isolamento total do SQL. A camada de serviço consome apenas objetos de domínio, garantindo alta manutenibilidade.
+
+---
+
+## 📸 Visual do Sistema
+
+### 📂 Tour pelos Módulos
+O sistema é dividido em módulos independentes com interfaces padronizadas e tabelas formatadas para o terminal.
+
+| Módulo de Médicos | Módulo de Pacientes |
+|---|---|
+| ![Menu de Médicos](.github/screenshots/doctorsMenu.png) | ![Menu de Pacientes](.github/screenshots/patientsMenu.png) |
+| ![Tabela de Médicos](.github/screenshots/doctorsTable.png) | ![Tabela de Pacientes](.github/screenshots/patientsTable.png) |
+
+| Módulo de Especialidades | Navegação e Menus |
+|---|---|
+| ![Menu de Especialidades](.github/screenshots/specialtiesMenu.png) | ![Menu Principal](.github/screenshots/mainMenu.png) |
+| ![Tabela de Especialidades](.github/screenshots/specialtiesTable.png) | ![Menu de Agendamentos](.github/screenshots/appointmentsMenu.png) |
+
+### 📅 Módulo de Agendamentos
+O coração do sistema, contando com listagem paginada e SQL Joins para consolidar dados de médicos e pacientes em uma única visão clara.
+![Listagem de Agendamentos](.github/screenshots/allAppointmentsPagination.png)
+
+---
 
 ## 🚀 Como Executar
-```bash
-# 1. Instale o MySQL e crie o banco conforme o script SQL fornecido.
-# 2. Baixe o MySQL Connector/J e coloque-o na pasta /lib.
 
+### Pré-requisitos
+1. Instale o **MySQL**.
+2. Crie o banco utilizando o script contido em `/sql/setup.sql`.
+3. Adicione o driver `mysql-connector-j` na pasta `/lib`.
+
+### Comandos de Compilação e Execução
+```bash
 # Clonar o projeto
 git clone https://github.com/uallace-macedo/medical-clinic-jdbc.git
 
-# Compilar
+# Compilar o projeto
 javac -cp "lib/*" -d bin src/**/*.java
 
-# Executar
+# Executar (Linux/Mac)
 java -cp "bin:lib/*" com.uallace.clinic.Main
+
+# Executar (Windows)
+java -cp "bin;lib/*" com.uallace.clinic.Main
 ```
