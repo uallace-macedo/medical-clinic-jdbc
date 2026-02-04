@@ -75,11 +75,11 @@ O coração do sistema, contando com listagem paginada e SQL Joins para consolid
 ```bash
 # Clonar o projeto
 git clone https://github.com/uallace-macedo/medical-clinic-jdbc.git
-
 cd medical-clinic-jdbc/
 
 # Defina aqui as credenciais de acesso
 cp resources/database.properties.example resources/database.properties
+rm resources/database.properties.example
 
 # Compilar o projeto
 javac -cp "lib/*" -d bin src/**/*.java
@@ -99,4 +99,5 @@ docker run --name mysql-medical-clinic \
 -e MYSQL_DATABASE=medical_clinic_db \
 -p 3306:3306 \
 -d mysql:latest
+
 ```
