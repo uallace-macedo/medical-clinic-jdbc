@@ -32,7 +32,6 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
     INNER JOIN doctors d ON d.id=a.doctor_id
     INNER JOIN specialties s ON s.id=d.specialty_id
     INNER JOIN patients p ON p.id=a.patient_id
-    ORDER BY a.appointment_date
   """;
 
   @Override
@@ -45,7 +44,7 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
       stmt.setInt(1, appointment.getDoctor().getId());
       stmt.setInt(2, appointment.getPatient().getId());
       stmt.setObject(3, appointment.getAppointmentDate());
-      stmt.setString(4, appointment.getAppointmentStatus().name());
+      stmt.setString(4, appointment.getAppointmentStatus() != null ? appointment.getAppointmentStatus().name() : AppointmentStatus.SCHEDULED.name());
       stmt.executeUpdate();
     } catch (SQLException e) {
       if (e.getErrorCode() == 1062) {
@@ -57,6 +56,17 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
           throw new EntityException("O paciente ja possui um agendamento para esse horario.");
         }
       }
+
+      if (e.getErrorCode() == 1452) {
+        String msg = e.getMessage().toLowerCase();
+
+        if (msg.contains("fk_appointment_doctor")) {
+          throw new DatabaseException("Doutor nao encontrado.");
+        } else {
+          throw new DatabaseException("Paciente nao encontrado");
+        }
+      }
+
       throw new DatabaseException("Nao foi possivel concluir o agendamento.", e);
     }
   }
@@ -84,7 +94,7 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
 
   @Override
   public List<Appointment> findAll(int page, int size) {
-    String sql = BASE_SQL + " ORDER BY a.appointment_date LIMIT ? OFFSET ?";
+    String sql = BASE_SQL + " ORDER BY a.id LIMIT ? OFFSET ?";
 
     List<Appointment> appointments = new ArrayList<>();
     int currentPage = Math.max(page, 1) - 1;
@@ -177,6 +187,28 @@ public class AppointmentDAO extends BaseDAO<Appointment> {
       }
     } catch (SQLException e) {
       throw new DatabaseException("Erro ao buscar agendamentos abertos do doutor.", e);
+    }
+
+    return appointments;
+  }
+
+  public List<Appointment> getOpenedPatientAppointments(int id) {
+    String sql = BASE_SQL + " WHERE p.id = ? AND a.status = 'SCHEDULED' ORDER BY a.appointment_date";
+    List<Appointment> appointments = new ArrayList<>();
+
+    try (
+      Connection conn = getConnection();
+      PreparedStatement stmt = conn.prepareStatement(sql);
+    ) {
+      stmt.setInt(1, id);
+
+      try (ResultSet result = stmt.executeQuery()) {
+        while (result.next()) {
+          appointments.add(mapResultSetToAppointment(result));
+        }
+      }
+    } catch (SQLException e) {
+      throw new DatabaseException("Erro ao buscar agendamentos abertos do paciente.", e);
     }
 
     return appointments;
