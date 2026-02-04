@@ -65,14 +65,21 @@ O coração do sistema, contando com listagem paginada e SQL Joins para consolid
 ## 🚀 Como Executar
 
 ### Pré-requisitos
-1. Instale o **MySQL**.
+1. Instale o **MySQL**, ou utilize o **Docker**.
 2. Crie o banco utilizando o script contido em `/sql/setup.sql`.
-3. Adicione o driver `mysql-connector-j` na pasta `/lib`.
+3. Rode o seed utilizando o script contido em `/sql/seed.sql`.
+4. Adicione o driver `mysql-connector-j` na pasta `/lib`.
+5. Modifique as credenciais de acesso ao banco em `/resources/database.properties`.
 
 ### Comandos de Compilação e Execução
 ```bash
 # Clonar o projeto
 git clone https://github.com/uallace-macedo/medical-clinic-jdbc.git
+
+cd medical-clinic-jdbc/
+
+# Defina aqui as credenciais de acesso
+cp resources/database.properties.example resources/database.properties
 
 # Compilar o projeto
 javac -cp "lib/*" -d bin src/**/*.java
@@ -82,4 +89,14 @@ java -cp "bin:lib/*" com.uallace.clinic.Main
 
 # Executar (Windows)
 java -cp "bin;lib/*" com.uallace.clinic.Main
+```
+
+### DB em container Docker
+
+```bash
+docker run --name mysql-medical-clinic \ 
+-e MYSQL_ROOT_PASSWORD=suasenha \
+-e MYSQL_DATABASE=medical_clinic_db \
+-p 3306:3306 \
+-d mysql:latest
 ```
